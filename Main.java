@@ -80,6 +80,7 @@ public class Main {
 }
 
 /*
+Query: Two Dimensional
 1. Hasil BIM (Skor Seragam)
 Hasil 1 dan Hasil 2 Semua dokumen di peringkat 10 besar mendapatkan skor yang sama persis (0.2840 untuk Skenario 1, dan 0.1587 untuk Skenario 2).
 Faktor Penentu: BIM hanya peduli apakah sebuah term itu ada atau tidak di dalam dokumen.  
