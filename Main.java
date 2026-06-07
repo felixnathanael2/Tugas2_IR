@@ -19,7 +19,10 @@ public class Main {
         // 2. Inisialisasi Model BIM dan Two Poisson
         BIM bimModel = new BIM(index);
         double k = 1.5; // Konstanta untuk Two Poisson (sesuai ppt)
+        double b = 0.75; // Konstanta untuk BM25 (sesuai ppt)
         TwoPoisson tpModel = new TwoPoisson(index, k);
+        BM25 bm25Model = new BM25(index, k, b);
+        BM11 bm11Model = new BM11(index, k);
 
         // 3. Persiapan Query dan Relevance Judgements
         // GANTI string ini dengan kata yang kamu tahu PASTI ada di dalam teks corpus milikmu
@@ -45,12 +48,29 @@ public class Main {
 
         // --- TEST TWO POISSON ---
         System.out.println("\n--- 3. Hasil Two Poisson (Skenario 1) ---");
-        HashMap<Integer, Double> tpScores1 = tpModel.calculateScores(query);
+        HashMap<Integer, Double> tpScores1 = tpModel.calculateScoresScenario1(query);
         printRankedScores(tpScores1);
 
         System.out.println("\n--- 4. Hasil Two Poisson (Skenario 2) ---");
         HashMap<Integer, Double> tpScores2 = tpModel.calculateScoresScenario2(query, relevantDocs);
         printRankedScores(tpScores2);
+
+        
+        System.out.println("\n--- 5. Hasil BM11 (Skenario 1) ---");
+        HashMap<Integer, Double> bm11Scores1 = bm11Model.calculateScoresScenario1(query);
+        printRankedScores(bm11Scores1);
+
+        System.out.println("\n--- 6. Hasil BM11 (Skenario 2) ---");
+        HashMap<Integer, Double> bm11Scores2 = bm11Model.calculateScoresScenario2(query, relevantDocs);
+        printRankedScores(bm11Scores2);
+        
+        System.out.println("\n--- 7. Hasil BM25 (Skenario 1) ---");
+        HashMap<Integer, Double> bm25Scores1 = bm25Model.calculateScoresScenario1(query);
+        printRankedScores(bm25Scores1);
+
+        System.out.println("\n--- 8. Hasil BM25 (Skenario 2) ---");
+        HashMap<Integer, Double> bm25Scores2 = bm25Model.calculateScoresScenario2(query, relevantDocs);
+        printRankedScores(bm25Scores2);
     }
 
     /**

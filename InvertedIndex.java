@@ -16,6 +16,8 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class InvertedIndex {
+    int avgDocumentLength = 0;
+
     // mau nyimpen docID + frekuensi + indeks kemunculan kata / offset (gaperlu offset sih tp keknya bagus dipake)
     // ppt 3 bagian Positional Index
     public static class Posting {
@@ -75,6 +77,7 @@ public class InvertedIndex {
         File[] docList = dir.listFiles();
         if (docList != null) {
             this.totalDocuments = docList.length;
+            double avg = 0.0;
             // int i = 0;
             // loop file corpus : https://stackoverflow.com/questions/4917326/how-to-iterate-over-the-files-of-a-certain-directory-in-java
             // gw pikir biar efisien loop tiap dokumen, tokenisasi + stemming, lgs catet si freq & indeks kemunculan lalu masukin ke map
@@ -131,9 +134,19 @@ public class InvertedIndex {
                     j++;
                 }
                 this.docLengths.put(docID, currentDocValidWordCount);
+                avg += currentDocValidWordCount;
                 // i++;
             }
+            this.avgDocumentLength = (int) (avg / docList.length);
         }
+    }
+
+    public int getDocumentLength(int docID) {
+        return this.docLengths.getOrDefault(docID, 0);
+    }
+
+    public int getDocumentAvgLength() {
+        return this.avgDocumentLength;
     }
 
     public Set<String> getKeySet(){

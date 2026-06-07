@@ -3,22 +3,25 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.ArrayList;
 
-public class TwoPoisson {
+public class BM25 {
     private InvertedIndex index;
     private Stemmer stemmer;
     
     // Konstanta k pada rentang 1 <= k < 2
-    private double k; 
+    private double k;
+    private double b; 
 
     /**
-     * Constructor untuk Two Poisson
+     * Constructor untuk BM25
      * @param index Inverted Index yang sudah dibangun
      * @param k Konstanta penyeimbang frekuensi (contoh: 1.5)
+     * @param b Konstanta penyeimbang pengaruh panjang dokumen terhadap relevansi (contoh: 0.75)
      */
-    public TwoPoisson(InvertedIndex index, double k) {
+    public BM25(InvertedIndex index, double k, double b) {
         this.index = index;
         this.stemmer = new PorterStemmer(); 
         this.k = k;
+        this.b = b;
     }
 
     /**
@@ -46,19 +49,17 @@ public class TwoPoisson {
                 // ft,D = frekuensi mentah term t pada dokumen D
                 double ftD = post.freq;
                 
-                // Menghitung bobot dengan rumus Two Poisson
-                double poissonScore = (ftD * (k + 1) * wt) / (ftD + k);
+                int ld = index.getDocumentLength(docId);
+                int lavg = index.getDocumentAvgLength();
+                double relevanceScore = (ftD * (k + 1) * wt) / (ftD + (k * ld / lavg) * b + k * (1 - b));
                 
-                documentScores.put(docId, currentScore + poissonScore);
+                documentScores.put(docId, currentScore + relevanceScore);
             }
         }
         
         return documentScores;
     }
 
-    /**
-     * Menghitung skor relevansi Skenario 2 (Dengan Relevance Judgements)
-     */
     public HashMap<Integer, Double> calculateScoresScenario2(String rawQuery, Set<Integer> relevantDocs) {
         HashMap<Integer, Double> documentScores = new HashMap<>();
         Set<String> queryTerms = preprocessQuery(rawQuery);
@@ -79,7 +80,6 @@ public class TwoPoisson {
                 }
             }
             
-            // wt berdasarkan BIM Skenario 2 (dengan Smoothing)
             double numerator = (rt + 0.5) * (N - R + 1);
             double denominator = (R + 1) * (Nt - rt + 0.5);
             double wt = Math.log10(numerator / denominator); 
@@ -91,10 +91,11 @@ public class TwoPoisson {
                 // ft,D = frekuensi mentah term t pada dokumen D
                 double ftD = post.freq;
                 
-                // Menghitung bobot dengan rumus Two Poisson
-                double poissonScore = (ftD * (k + 1) * wt) / (ftD + k);
+                int ld = index.getDocumentLength(docId);
+                int lavg = index.getDocumentAvgLength();
+                double relevanceScore = (ftD * (k + 1) * wt) / (ftD + (k * ld / lavg) * b + k * (1 - b));
                 
-                documentScores.put(docId, currentScore + poissonScore);
+                documentScores.put(docId, currentScore + relevanceScore);
             }
         }
         
