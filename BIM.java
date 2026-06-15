@@ -21,15 +21,12 @@ public class BIM {
     public HashMap<Integer, Double> calculateScoresScenario1(String rawQuery) {
         HashMap<Integer, Double> documentScores = new HashMap<>();
         
-        // Menggunakan Set untuk mencegah duplikasi term pada query
+        // Membersihkan query dari tanda baca dan mengambil kata-kata dasarnya yang unik
         Set<String> queryTerms = preprocessQuery(rawQuery);
         
-        // Mengambil Total Dokumen (N) dari Inverted Index
+        // N = Total seluruh dokumen di corpus
         double N = index.totalDocuments; 
 
-        // IMPLEMENTASI ASUMSI 2: 
-        // HANYA memproses term unik yang ada di dalam query.
-        // Term di luar query diabaikan karena probabilitasnya dianggap sama (log(1) = 0).
         for (String term : queryTerms) {
             ArrayList<InvertedIndex.Posting> postings = index.getPostings(term);
             
@@ -39,54 +36,52 @@ public class BIM {
             // Nt = Document Frequency (jumlah dokumen yang mengandung kata ini minimal 1 kali)
             double Nt = postings.size();
             
-            // Menghitung bobot term (wt) menggunakan Skenario 1 BIM
+            // Menghitung bobot kata (wt) menggunakan rumus probabilitas BIM standar.
+            // Kata yang dianggap "langka" (Nt kecil) akan mendapat bobot logaritma yang lebih tinggi.
             double wt = Math.log10((0.5 * N) / Nt); 
             
-            // IMPLEMENTASI ASUMSI 1:
-            // Karena antar term diasumsikan independen, probabilitas kemunculan bersama 
-            // mereka cukup dijumlahkan saja di dalam ruang logaritma.
             for (InvertedIndex.Posting post : postings) {
                 int docId = post.docID;
                 
-                // Ambil skor sementara dari dokumen ini, jika belum pernah dihitung, mulai dari 0.0
+                // Ambil skor sementara dari dokumen ini, jika belum pernah dihitung, default 0.0
                 double currentScore = documentScores.getOrDefault(docId, 0.0);
                 
+                // Menambahkan bobot kata (wt) ke total skor dokumen
                 documentScores.put(docId, currentScore + wt);
             }
         }
         
+        // Mengembalikan daftar dokumen beserta skor relevansinya
         return documentScores;
     }
 
-    /**
-     * Menghitung skor relevansi dengan BIM Skenario 2 (dengan Relevance Judgements)
+     /**
+     * Skenario 2: Menghitung skor relevansi dengan bantuan data dokumen yang sudah dipastikan relevan.
      * @param rawQuery Query pencarian
      * @param relevantDocs Himpunan docID yang sudah diketahui relevan (dari qrels)
      */
     public HashMap<Integer, Double> calculateScoresScenario2(String rawQuery, Set<Integer> relevantDocs) {
         HashMap<Integer, Double> documentScores = new HashMap<>();
         
-        // Menggunakan Set untuk mencegah duplikasi term pada query
+        // Membersihkan query menjadi himpunan kata dasar unik
         Set<String> queryTerms = preprocessQuery(rawQuery);
         
         // N = Total seluruh dokumen di corpus
         double N = index.totalDocuments; 
         
-        // R = Total dokumen yang relevan dengan query ini
+        // R = Total dokumen yang sudah dinilai relevan oleh sistem/user
         double R = relevantDocs.size(); 
 
-        // IMPLEMENTASI ASUMSI 2: 
-        // HANYA memproses term unik yang ada di dalam query.
-        // Term di luar query diabaikan karena probabilitasnya dianggap sama (log(1) = 0).
         for (String term : queryTerms) {
             ArrayList<InvertedIndex.Posting> postings = index.getPostings(term);
             
+            // Jika kata tersebut sama sekali tidak ada di corpus dokumen mana pun, lewati
             if (postings == null || postings.isEmpty()) continue;
             
             // Nt = Document Frequency (jumlah dokumen yang mengandung term t)
             double Nt = postings.size();
             
-            // Cari nilai rt (berapa banyak dokumen di 'postings' yang JUGA ada di 'relevantDocs')
+            // Menghitung rt: Berapa banyak dari dokumen relevan (R) yang mengandung kata ini minimal 1 kali
             double rt = 0;
             for (InvertedIndex.Posting post : postings) {
                 if (relevantDocs.contains(post.docID)) {
@@ -94,38 +89,35 @@ public class BIM {
                 }
             }
             
-            // Menghitung bobot term (wt) menggunakan rumus BIM Skenario 2 (Smoothing)
+            // Menghitung pembilang (numerator) untuk rumus BIM dengan Smoothing (ditambah 0.5)
             double numerator = (rt + 0.5) * (N - R + 1);
+            // Menghitung penyebut (denominator) untuk rumus BIM
             double denominator = (R + 1) * (Nt - rt + 0.5);
+            // wt = Logaritma basis 10 dari numerator dibagi denominator
             double wt = Math.log10(numerator / denominator); 
             
-            // IMPLEMENTASI ASUMSI 1:
-            // Karena antar term diasumsikan independen, probabilitas kemunculan bersama 
-            // mereka cukup dijumlahkan saja di dalam ruang logaritma.
             for (InvertedIndex.Posting post : postings) {
                 int docId = post.docID;
                 double currentScore = documentScores.getOrDefault(docId, 0.0);
+                // Menambahkan bobot kata (wt) ke total skor dokumen
                 documentScores.put(docId, currentScore + wt);
             }
         }
-        
+        // Mengembalikan daftar dokumen beserta skor relevansinya
         return documentScores;
     }
 
     /**
-     * Fungsi helper untuk memproses input query mentah menjadi himpunan term unik (Set) yang valid
+     * Memproses teks input pengguna menjadi sekumpulan kata yang bersih dan siap dicari
      */
     private Set<String> preprocessQuery(String rawQuery) {
-        // Menggunakan HashSet agar kata yang terduplikasi secara otomatis disaring menjadi satu
         Set<String> validTerms = new HashSet<>();
         
-        // Memecah kata menggunakan delimiter yang identik dengan InvertedIndex.java
         String[] terms = rawQuery.split("[\\W_]+"); 
         
         for (String t : terms) {
             String clean = t.toLowerCase();
             if (clean.isEmpty() || index.stopWords.contains(clean)) continue;
-            // HashSet secara otomatis menolak item jika sudah ada di dalamnya
             validTerms.add(stemmer.stem(clean)); 
         }
         
