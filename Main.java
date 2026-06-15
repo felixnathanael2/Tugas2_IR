@@ -141,7 +141,7 @@ public class Main {
         List<Double> catatanPrecisionAsli = new ArrayList<>();
         double pAt1 = 0, pAt3 = 0, pAt5 = 0, pAt10 = 0;
 
-        int batasRank = Math.min(list.size(), 10);
+        int batasRank = Math.min(list.size(), 5);
 
         int tp = 0, fp = 0, fn = 0, tn = 0;
 
