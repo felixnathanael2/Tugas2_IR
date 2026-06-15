@@ -60,7 +60,7 @@ public class Main {
                 namaModel = "BIM";
         }
 
-        final int JUMLAH_QUERY = 3;
+        final int JUMLAH_QUERY = 5;
 
         List<HasilEvaluasi> hasilSemuaQuerySkenario1 = new ArrayList<>();
         List<HasilEvaluasi> hasilSemuaQuerySkenario2 = new ArrayList<>();
@@ -84,50 +84,34 @@ public class Main {
                 }
             }
 
-            HashMap<Integer, Double> scores1;
-            HashMap<Integer, Double> scores2;
+            HashMap<Integer, Double> scores;
 
             switch (pilihanModel) {
                 case 2:
-                    scores1 = tpModel.calculateScoresScenario1(query);
-                    scores2 = tpModel.calculateScoresScenario2(query, relevantDocs);
+                    scores = tpModel.calculateScoresScenario2(query, relevantDocs);
                     break;
                 case 3:
-                    scores1 = bm11Model.calculateScoresScenario1(query);
-                    scores2 = bm11Model.calculateScoresScenario2(query, relevantDocs);
+                    scores = bm11Model.calculateScoresScenario2(query, relevantDocs);
                     break;
                 case 4:
-                    scores1 = bm25Model.calculateScoresScenario1(query);
-                    scores2 = bm25Model.calculateScoresScenario2(query, relevantDocs);
+                    scores = bm25Model.calculateScoresScenario2(query, relevantDocs);
                     break;
                 default:
-                    scores1 = bimModel.calculateScoresScenario1(query);
-                    scores2 = bimModel.calculateScoresScenario2(query, relevantDocs);
+                    scores = bimModel.calculateScoresScenario2(query, relevantDocs);
             }
 
-            System.out.println("\n--- " + namaModel + " (Skenario 1 - Tanpa Relevance Judgements) ---");
-            HasilEvaluasi hasil1 = evaluationMetrics(scores1, relevantDocs, index.totalDocuments);
+            System.out.println("\n--- " + namaModel + " ---");
+            HasilEvaluasi hasil1 = evaluationMetrics(scores, relevantDocs, index.totalDocuments);
             if (hasil1 != null)
                 hasilSemuaQuerySkenario1.add(hasil1);
-
-            System.out.println("\n--- " + namaModel + " (Skenario 2 - Dengan Relevance Judgements) ---");
-            HasilEvaluasi hasil2 = evaluationMetrics(scores2, relevantDocs, index.totalDocuments);
-            if (hasil2 != null)
-                hasilSemuaQuerySkenario2.add(hasil2);
         }
 
         // 5. Print 11 point average setelah semua query selesai dievaluasi
         System.out.println("\n=============================================");
         System.out.println(
-                "11-POINT AVERAGE PRECISION (RATA-RATA " + JUMLAH_QUERY + " QUERY) - " + namaModel + " - SKENARIO 1");
+                "11-POINT AVERAGE PRECISION (RATA-RATA " + JUMLAH_QUERY + " QUERY) - " + namaModel);
         System.out.println("==============================================");
         cetak11PointRataRata(hasilSemuaQuerySkenario1);
-
-        System.out.println("\n============================================");
-        System.out.println(
-                "11-POINT AVERAGE PRECISION (RATA-RATA " + JUMLAH_QUERY + " QUERY) - " + namaModel + " - SKENARIO 2");
-        System.out.println("============================================");
-        cetak11PointRataRata(hasilSemuaQuerySkenario2);
     }
 
     // Fungsi untuk menghitung dan print hasil evaluasi 
@@ -157,7 +141,7 @@ public class Main {
         List<Double> catatanPrecisionAsli = new ArrayList<>();
         double pAt1 = 0, pAt3 = 0, pAt5 = 0, pAt10 = 0;
 
-        int batasRank = Math.min(list.size(), 10);
+        int batasRank = Math.min(list.size(), 5);
 
         int tp = 0, fp = 0, fn = 0, tn = 0;
 
@@ -213,13 +197,13 @@ public class Main {
         System.out.println("HASIL EVALUASI:");
         System.out.printf("    [TP: %d | FP: %d | FN: %d | TN: %d]\n", tp, fp, fn, tn);
         System.out.println("    -----------------------------------------");
-        System.out.printf("    Precision Score: %.2f%%\n", precision * 100);
-        System.out.printf("    Recall Score: %.2f%%\n", recall * 100);
+        System.out.printf("    Precision Score: %.2f\n", precision);
+        System.out.printf("    Recall Score: %.2f\n", recall);
         System.out.println("    -----------------------------------------");
-        System.out.printf("    Precision @1  : %.2f%%\n", pAt1 * 100);
-        System.out.printf("    Precision @3  : %.2f%%\n", pAt3 * 100);
-        System.out.printf("    Precision @5  : %.2f%%\n", pAt5 * 100);
-        System.out.printf("    Precision @10 : %.2f%%\n", pAt10 * 100);
+        System.out.printf("    Precision @1  : %.2f\n", pAt1);
+        System.out.printf("    Precision @3  : %.2f\n", pAt3);
+        System.out.printf("    Precision @5  : %.2f\n", pAt5);
+        System.out.printf("    Precision @10 : %.2f\n", pAt10);
         System.out.println("=============================================");
 
         HasilEvaluasi hasil = new HasilEvaluasi();
@@ -261,11 +245,11 @@ public class Main {
         System.out.println("Jumlah query yang dirata-rata: " + n);
         System.out.println("---------------------------------------------");
         for (int i = 0; i < 11; i++) {
-            System.out.printf("    Recall=%.1f -> Precision=%.2f%%\n", sebelasTitikRecall[i],
-                    rataRataInterpolasi[i] * 100);
+            System.out.printf("    Recall=%.1f -> Precision=%.2f\n", sebelasTitikRecall[i],
+                    rataRataInterpolasi[i]);
         }
         System.out.println("---------------------------------------------");
-        System.out.printf("    11-Point Average Precision: %.2f%%\n", rataRata11PointSemuaQuery * 100);
+        System.out.printf("    11-Point Average Precision: %.2f\n", rataRata11PointSemuaQuery);
         System.out.println("=============================================");
     }
 }
