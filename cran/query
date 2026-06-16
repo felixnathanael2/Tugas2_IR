@@ -1,0 +1,24 @@
+query 1 : 
+boundary layer equations for skin friction drag
+groundtruth: 
+2, 4, 31
+
+query 2 : 
+transient heat conduction in aircraft structures
+groundtruth: 
+5, 12, 65
+
+query 3 : 
+experimental investigation results in wind tunnel test
+groundtruth: 
+1, 7, 36, 37, 38
+
+Query 4: 
+compressible fluid dynamics pressure gradient
+groundtruth: 
+11, 16, 71, 72
+
+Query 5: 
+analytical solutions for inviscid flow
+groundtruth: 
+20, 25, 28
